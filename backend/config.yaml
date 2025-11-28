@@ -1,0 +1,16 @@
+server:
+  port: "8080"
+
+oidc:
+  issuer: "http://dex.auth.svc.cluster.local:5556"
+  clientId: "local-client"
+  clientSecret: ""
+  redirectUri: "http://localhost:8000/api/auth/callback"
+  scopes:
+    - openid
+    - email
+    - profile
+    - offline_access
+
+frontend:
+  redirectUrl: "http://localhost:8081"
