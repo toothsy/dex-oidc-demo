@@ -7,6 +7,7 @@ Golang backend + TanStack frontend demonstrating OIDC flow with Dex.
 - Docker
 - Kind
 - Kubectl
+- Helm
 - Helmfile
 
 ## Installation
@@ -28,3 +29,7 @@ After code changes, run respective `./deploy.sh` scripts from backend/frontend f
 ```bash
 kind delete cluster --name kong-dex
 ```
+
+## DEMO
+
+![demo](./media/dexLogin.mp4)
