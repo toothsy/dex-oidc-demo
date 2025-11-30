@@ -3,7 +3,7 @@
 global:
   # Database configuration for Dex
   database:
-    host: postgres-postgresql.auth.svc.cluster.local
+    host: postgres.postgres.svc.cluster.local
     port: 5432
     username: dex
     ssl:
@@ -12,7 +12,7 @@ global:
 
   # Database secret for password
   databaseSecret:
-    name: postgres-postgresql
+    name: postgres
     key: password
 
   # Ingress configuration
@@ -25,7 +25,7 @@ global:
 
 # Dex database name
 database:
-  database: dex
+  database: ps_db
 
 # HTTP port for Dex service
 httpPort: 5556
@@ -87,3 +87,12 @@ livenessProbe:
 
 # Replica count
 replicaCount: 1
+
+# Environment variables for dex container
+dex:
+  env:
+    - name: PASSWORD_ENV_VAR
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: password

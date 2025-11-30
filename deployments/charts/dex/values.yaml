@@ -181,29 +181,6 @@ image:
   # The container image tag.
   tag: v2.39.1-distroless
 
-# database-creator runs as an init container to create a database for
-# the dex-server if it does not already exist. This container is created
-# only if the `.Values.global.database.createDatabase` flag is enabled.
-databaseCreator:
-  # The container image of database-creator.
-  image:
-    # The container image name.
-    repository: public.ecr.aws/cloudnatix/llmariner/database-creator
-    # Kubernetes imagePullPolicy on Deployment.
-    pullPolicy: IfNotPresent
-
-# envsubst creator runs as an init container to run the envsubst
-# command and substitutes environment variables in shell format strings.
-# It is used for expand the database password into the dex-server
-# configuration loaded from the Secret.
-envsubst:
-  # The container image of envsubst.
-  image:
-    # The container image name.
-    repository: public.ecr.aws/cloudnatix/llmariner/envsubst
-    # Kubernetes imagePullPolicy on Deployment.
-    pullPolicy: IfNotPresent
-
 # Override the container image tag for databaseCreator and envsubst to
 # deploy by setting this variable.
 # If no value is set, the chart's appVersion will be used.
@@ -304,10 +281,9 @@ securityContext:
   readOnlyRootFilesystem: true
   capabilities:
     drop:
-    - ALL
+      - ALL
   runAsNonRoot: true
   runAsUser: 1000
-
 # Additional volumes to add to the dex-server pod.
 # For more information, see [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/).
 # +docs:property

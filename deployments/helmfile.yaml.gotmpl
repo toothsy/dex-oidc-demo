@@ -21,6 +21,7 @@ releases:
 
   - name: postgres
     namespace: postgres
+    createNamespace: true
     labels:
       app: postgres
       tier: core
@@ -44,6 +45,9 @@ releases:
     chart: ./charts/dex
     values:
       - dex-values.yaml
+    set:
+      - name: postgresPassword
+        value: {{ .Values.postgres.pass }}
 
   - name: backend
     namespace: auth

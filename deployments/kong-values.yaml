@@ -11,8 +11,6 @@ gateway:
       servicePort: 443
       containerPort: 8443
       nodePort: 30443
-nodeSelector:
-  ingress-ready: "true"
 tolerations:
   - key: node-role.kubernetes.io/control-plane
     operator: Equal
