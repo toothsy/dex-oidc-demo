@@ -2,6 +2,12 @@
 
 Golang backend + TanStack frontend demonstrating OIDC flow with Dex.
 
+## DEMO
+
+<video width="320" height="240" controls>
+  <source src="./media/dexLogin.mp4" type="video/mp4">
+</video>
+
 ## Prerequisites
 
 - Docker
@@ -29,7 +35,3 @@ After code changes, run respective `./deploy.sh` scripts from backend/frontend f
 ```bash
 kind delete cluster --name kong-dex
 ```
-
-## DEMO
-
-![demo](./media/dexLogin.mp4)
