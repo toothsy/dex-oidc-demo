@@ -5,7 +5,7 @@ Golang backend + TanStack frontend demonstrating OIDC flow with Dex.
 ## DEMO
 
 <video width="320" height="240" controls>
-  <source src="./media/dexLogin.mp4" type="video/mp4">
+  <source src="https://github.com/toothsy/dex-oidc-demo/blob/main/media/dexLogin.mp4" type="video/mp4">
 </video>
 
 ## Prerequisites
