@@ -1,0 +1,62 @@
+environments:
+  default:
+    values:
+      - values.yaml
+---
+repositories:
+  - name: kong
+    url: https://charts.konghq.com
+
+releases:
+  - name: kong
+    namespace: kong
+    createNamespace: true
+    chart: kong/kong
+    version: ~2.51.0  # or latest stable, check via `helm search repo kong/kong`
+    set:
+      - name: ingressControllerCRDs
+        value: false
+    values:
+      - kong-values.yaml
+
+  - name: postgres
+    namespace: postgres
+    labels:
+      app: postgres
+      tier: core
+    version: 16.0.3
+    chart: oci://registry-1.docker.io/bitnamicharts/postgresql
+    set:
+    - name: nameOverride
+      value: postgres
+    - name: auth.database
+      value: ps_db
+    - name: auth.username
+      value: {{ .Values.postgres.user }}
+    - name: auth.password
+      value: {{ .Values.postgres.pass }}
+    - name: image.repository
+      value: bitnamilegacy/postgresql
+
+  - name: dex
+    namespace: auth
+    createNamespace: true
+    chart: ./charts/dex
+    values:
+      - dex-values.yaml
+
+  - name: backend
+    namespace: auth
+    createNamespace: false
+    chart: ./charts/backend
+    values:
+      - backend-values.yaml
+    needs:
+      - auth/dex
+
+  - name: frontend
+    namespace: frontend
+    createNamespace: true
+    chart: ./charts/frontend
+    values:
+      - frontend-values.yaml

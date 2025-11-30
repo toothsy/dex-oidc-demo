@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dex-server.fullname" . }}
+  labels:
+    {{- include "dex-server.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dex-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dex-server.labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ sha256sum (toJson .Values) }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      {{- if .Values.global.database.createDatabase }}
+      - name: database-creator
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.databaseCreator.image.repository }}:{{ default .Chart.Version .Values.version }}"
+        imagePullPolicy: {{ .Values.databaseCreator.image.pullPolicy }}
+        args:
+        - run
+        - --config
+        - /etc/config/config.yaml
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.global.databaseSecret.name }}
+              key: {{ .Values.global.databaseSecret.key }}
+        volumeMounts:
+        - name: original-config
+          mountPath: /etc/config
+          readOnly: true
+      {{- end }}
+      - name: envsubst
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.envsubst.image.repository }}:{{ default .Chart.Version .Values.version }}"
+        imagePullPolicy: {{ .Values.envsubst.image.pullPolicy }}
+        args:
+        - /bin/sh
+        - -c
+        - envsubst < /original-config/config.yaml > /processed-config/config.yaml
+        env:
+        - name: PASSWORD_ENV_VAR
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.global.databaseSecret.name }}
+              key: {{ .Values.global.databaseSecret.key }}
+        volumeMounts:
+        - name: original-config
+          mountPath: /original-config
+          readOnly: true
+        - name: processed-config
+          mountPath: /processed-config
+        {{- with .Values.volumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      containers:
+      - name: dex
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+        - dex
+        - serve
+        - /etc/config/config.yaml
+        ports:
+        - name: http
+          containerPort: {{ .Values.httpPort }}
+          protocol: TCP
+        - name: internal-grpc
+          containerPort: {{ .Values.internalGrpcPort }}
+          protocol: TCP
+        volumeMounts:
+        - name: processed-config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        {{- with .Values.dex }}
+          {{- with .env }}
+        env:
+        {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .envFrom }}
+        envFrom:
+        {{- toYaml . | nindent 8 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: original-config
+        configMap:
+          name: {{ include "dex-server.fullname" . }}
+      - name: processed-config
+        emptyDir:
+      - name: tmp
+        emptyDir:
+      {{- with .Values.volumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    server:
+      port: {{ .Values.config.server.port | quote }}
+    oidc:
+      issuer: {{ .Values.config.oidc.issuer | quote }}
+      clientId: {{ .Values.config.oidc.clientId | quote }}
+      clientSecret: {{ .Values.config.oidc.clientSecret | quote }}
+      redirectUri: {{ .Values.config.oidc.redirectUri | quote }}
+      scopes:
+      {{- range .Values.config.oidc.scopes }}
+        - {{ . }}
+      {{- end }}
+    frontend:
+      redirectUrl: {{ .Values.config.frontend.redirectUrl | quote }}

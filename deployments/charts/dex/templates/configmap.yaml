@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dex-server.fullname" . }}
+  labels:
+    {{- include "dex-server.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    issuer: {{ .Values.global.ingress.controllerUrl }}/v1/dex
+    storage:
+      type: postgres
+      config:
+        host: {{ .Values.global.database.host }}
+        port: {{ .Values.global.database.port }}
+        database: {{ .Values.database.database }}
+        user: {{ .Values.global.database.username }}
+        password: $PASSWORD_ENV_VAR
+        ssl:
+          mode: {{ .Values.global.database.ssl.mode }}
+          rootCert: {{ .Values.global.database.ssl.rootCert }}
+
+        # The following configurations are used by database-creator
+        username: {{ .Values.global.database.username }}
+        passwordEnvName: DB_PASSWORD
+        createDatabase: {{ .Values.global.database.createDatabase }}
+        originalDatabase: {{ .Values.global.database.originalDatabase }}
+
+    web:
+      http: 0.0.0.0:{{ .Values.httpPort }}
+    grpc:
+      addr: 0.0.0.0:{{ .Values.internalGrpcPort }}
+
+    oauth2:
+      skipApprovalScreen: true
+      {{- with .Values.oauth2.passwordConnector }}
+      {{- if .enable }}
+      passwordConnector: {{ .value}}
+      {{- end }}
+      {{- end }}
+      responseTypes: {{ .Values.oauth2.responseTypes }}
+      alwaysShowLoginScreen: false
+
+    {{- with .Values.connectors }}
+    connectors:
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+
+    staticClients:
+    # TODO(kenji): Remove once all the CLIs are updated.
+    - id: llm-operator
+      name: LLM Operator
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+      redirectURIs:
+      - http://127.0.0.1:5555/callback
+    - id: llmariner
+      name: LLMariner
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+      redirectURIs:
+      - http://127.0.0.1:5555/callback
+    - id: session-manager
+      name: LLM Operator
+      secret: o15FQlUB8SeOOBiw3Pg5vD5p
+      redirectURIs:
+      - {{ .Values.global.ingress.controllerUrl }}/v1/sessions/callback
+    {{- with .Values.additionalStaticClients }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+
+    enablePasswordDB: {{ .Values.enablePasswordDb }}
+
+    {{- with .Values.staticPasswords }}
+    staticPasswords:
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+
+    {{- with .Values.expiry }}
+    expiry:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}

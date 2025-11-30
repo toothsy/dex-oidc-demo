@@ -1,0 +1,4 @@
+postgres:
+  user: "dex" # username user Dex will use
+  pass: "dexpassword" # password for user dex
+  database: "dex"

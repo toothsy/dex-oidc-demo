@@ -1,0 +1,89 @@
+# Dex chart values - matching charts/dex/values.yaml structure
+
+global:
+  # Database configuration for Dex
+  database:
+    host: postgres-postgresql.auth.svc.cluster.local
+    port: 5432
+    username: dex
+    ssl:
+      mode: disable
+    createDatabase: true
+
+  # Database secret for password
+  databaseSecret:
+    name: postgres-postgresql
+    key: password
+
+  # Ingress configuration
+  ingress:
+    ingressClassName: kong
+    host: localhost
+    # Controller URL is where Dex will be accessible from outside
+    controllerUrl: "http://dex-dex-server-http.auth.svc.cluster.local:5556"
+    annotations: {}
+
+# Dex database name
+database:
+  database: dex
+
+# HTTP port for Dex service
+httpPort: 5556
+
+# GRPC port for internal communication
+internalGrpcPort: 8082
+
+# Enable password database (local authentication)
+enablePasswordDb: true
+
+# OAuth2 configuration
+oauth2:
+  passwordConnector:
+    enable: true
+    value: local
+  responseTypes: ["code"]
+
+# Static passwords for local authentication
+staticPasswords:
+  - email: "admin-dex@example.com"
+    hash: "JDJhJDEyJEwycXBiTjRjNThHTHd1YXo4Wnhoa2UvSzF1cHMvWnVyRnhvNU9iRnAxQWhILmllNGdUNXZD" # bcrypt hash of "password"
+    username: "admin"
+    userID: "1"
+
+# Additional static clients for OAuth2
+additionalStaticClients:
+  - id: local-client
+    public: true
+    name: "Local Development Client"
+    redirectURIs:
+      - "http://localhost:8081/oidc/callback"
+      - "http://localhost:8000/v1/dex/callback"
+      - "http://localhost:8000/api/auth/callback"
+
+  - id: backend-client
+    public: false
+    secret: "backend-secret-change-in-production"
+    name: "Backend Auth Service"
+    redirectURIs:
+      - "http://localhost:8000/api/auth/callback"
+
+# Resource limits
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
+
+# Liveness probe configuration
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 5
+
+# Replica count
+replicaCount: 1

@@ -1,0 +1,30 @@
+gateway:
+  proxy:
+    type: NodePort
+    http:
+      enabled: true
+      servicePort: 80
+      containerPort: 8000
+      nodePort: 30080
+    tls:
+      enabled: true
+      servicePort: 443
+      containerPort: 8443
+      nodePort: 30443
+nodeSelector:
+  ingress-ready: "true"
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Equal
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Equal
+    effect: NoSchedule
+admin:
+  enabled: true
+  http:
+    enabled: true
+    nodePort: 30081
+  tls:
+    enabled: true
+    nodePort: 30444
