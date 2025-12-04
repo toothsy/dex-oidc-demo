@@ -34,12 +34,6 @@ export default function LandingPage() {
             onClick={() => navigate('/login')}
             className="px-10 py-4 bg-purple-600 hover:bg-purple-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-400"
           >
-            Get Started
-          </button>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-10 py-4 bg-transparent border-2 border-purple-300 hover:bg-purple-800 text-purple-100 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-400"
-          >
             Sign In
           </button>
         </div>

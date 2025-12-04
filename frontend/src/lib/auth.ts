@@ -20,7 +20,6 @@ export interface UserInfo {
 const TOKEN_KEY = 'dex_access_token'
 const ID_TOKEN_KEY = 'dex_id_token'
 const USER_KEY = 'dex_user'
-const VERIFIER_KEY = 'dex_code_verifier'
 
 export function getStoredToken(): string | null {
   return sessionStorage.getItem(TOKEN_KEY)
@@ -46,65 +45,27 @@ export function clearAuth(): void {
   sessionStorage.removeItem(TOKEN_KEY)
   sessionStorage.removeItem(ID_TOKEN_KEY)
   sessionStorage.removeItem(USER_KEY)
-  sessionStorage.removeItem(VERIFIER_KEY)
 }
 
-// PKCE helper functions
-function base64URLEncode(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-  const binary = String.fromCharCode(...bytes)
-  return btoa(binary)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '')
-}
-
-async function generateCodeVerifier(): Promise<string> {
-  const array = new Uint8Array(32)
-  crypto.getRandomValues(array)
-  return base64URLEncode(array.buffer)
-}
-
-async function generateCodeChallenge(verifier: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(verifier)
-  const hash = await crypto.subtle.digest('SHA-256', data)
-  return base64URLEncode(hash)
-}
-
-// Generate authorization URL with PKCE
+// Generate authorization URL
 export async function getAuthorizationUrl(): Promise<string> {
-  const verifier = await generateCodeVerifier()
-  const challenge = await generateCodeChallenge(verifier)
-
-  // Store verifier for later use in token exchange
-  sessionStorage.setItem(VERIFIER_KEY, verifier)
-
   const params = new URLSearchParams({
     client_id: DEXCONFIG.clientId,
     redirect_uri: DEXCONFIG.redirectUri,
     response_type: DEXCONFIG.responseType,
     scope: DEXCONFIG.scope,
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
   })
 
   return `${DEX_ENDPOINTS.authorization}?${params.toString()}`
 }
 
-// Exchange authorization code for tokens using PKCE
+// Exchange authorization code for tokens
 export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
-  const verifier = sessionStorage.getItem(VERIFIER_KEY)
-  if (!verifier) {
-    throw new Error('No code verifier found')
-  }
-
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
     client_id: DEXCONFIG.clientId,
     redirect_uri: DEXCONFIG.redirectUri,
-    code_verifier: verifier,
   })
 
   const response = await fetch(DEX_ENDPOINTS.token, {
@@ -119,9 +80,6 @@ export async function exchangeCodeForToken(code: string): Promise<TokenResponse>
     const error = await response.text()
     throw new Error(`Token exchange failed: ${error}`)
   }
-
-  // Clean up verifier
-  sessionStorage.removeItem(VERIFIER_KEY)
 
   return response.json()
 }
@@ -166,7 +124,7 @@ export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
   return response.json()
 }
 
-// Start OAuth2 flow in popup with PKCE
+// Start OAuth2 flow in popup
 export async function startAuthFlowPopup(): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const authUrl = await getAuthorizationUrl()

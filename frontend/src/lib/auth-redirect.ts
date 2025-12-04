@@ -55,7 +55,7 @@ function generateState(): string {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 }
 
-// Redirect to Dex via backend (standard OIDC flow, no PKCE)
+// Redirect to Dex via backend (standard OIDC flow)
 export async function redirectToAuth(): Promise<void> {
   const state = generateState()
 

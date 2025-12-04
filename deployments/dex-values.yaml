@@ -23,9 +23,12 @@ global:
     controllerUrl: "http://dex-dex-server-http.auth.svc.cluster.local:5556"
     annotations: {}
 
-# Dex database name
+# Dex database name and password
 database:
-  database: ps_db
+  database: dex
+
+# Postgres password (explicit for local dev - DO NOT use in production)
+postgresPassword: dexpassword
 
 # HTTP port for Dex service
 httpPort: 5556
