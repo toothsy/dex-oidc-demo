@@ -2,7 +2,15 @@
 set -e
 
 CLUSTER_NAME="kong-dex"
-kind create cluster --name ${CLUSTER_NAME} --config deployments/kind-config.yaml
+
+# Check if cluster exists
+if kind get clusters | grep -q "^${CLUSTER_NAME}$"; then
+  echo "Cluster ${CLUSTER_NAME} already exists, skipping creation"
+else
+  echo "Creating cluster ${CLUSTER_NAME}..."
+  kind create cluster --name ${CLUSTER_NAME} --config deployments/kind-config.yaml
+fi
+
 echo "=== Building and loading Docker images ==="
 
 # Build and load frontend image
