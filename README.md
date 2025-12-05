@@ -16,7 +16,8 @@ Golang backend + TanStack frontend demonstrating OIDC flow with Dex.
 
 ## Installation
 
-./deploy-all.sh
+- this script creates a kind cluster, and does the helmfile sync.
+`./deploy-all.sh`
 
 ## Access
 
